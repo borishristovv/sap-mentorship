@@ -1,7 +1,10 @@
+
 package dev.borishristov.heartbeat;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class HeartbeatApplication {
@@ -10,4 +13,16 @@ public class HeartbeatApplication {
         SpringApplication.run(HeartbeatApplication.class, args);
     }
 
+    @Bean
+    CommandLineRunner runChecker() {
+        return args -> {
+            if (args.length != 1) {
+                System.out.println("Usage: heartbeat <url>");
+                return;
+            }
+
+            WebsiteChecker checker = new WebsiteChecker();
+            checker.check(args[0]);
+        };
+    }
 }
