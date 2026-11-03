@@ -7,10 +7,21 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+/**
+ * Checks website availability by sending HTTP requests
+ * and measuring response times.
+ */
 public class WebsiteChecker {
 
     private final HttpClient client = HttpClient.newHttpClient();
 
+    /**
+     * Sends an HTTP GET request to the specified URL and prints
+     * the HTTP status code and response time.
+     * Reports connection errors if the request fails.
+     *
+     * @param url the URL of the website to check
+     */
     public void check(String url) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
