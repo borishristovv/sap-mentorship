@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
 
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class WebsiteCheckerTest {
 
     @Test
-    void shouldPrintHttp200ForWorkingWebsite() throws Exception {
+    void shouldPrintHttp200ForWorkingWebsite() throws IOException {
         HttpServer server = HttpServer.create(
                 new InetSocketAddress("127.0.0.1", 0), 0
         );
@@ -27,8 +28,8 @@ class WebsiteCheckerTest {
         PrintStream originalOut = System.out;
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        try {
-            System.setOut(new PrintStream(output));
+        try (PrintStream testOut = new PrintStream(output)) {
+            System.setOut(testOut);
 
             WebsiteChecker checker = new WebsiteChecker();
             checker.check("http://127.0.0.1:" + server.getAddress().getPort());
@@ -42,7 +43,7 @@ class WebsiteCheckerTest {
     }
 
     @Test
-    void shouldPrintHttpErrorCodes() throws Exception {
+    void shouldPrintHttpErrorCodes() throws IOException {
         HttpServer server = HttpServer.create(
                 new InetSocketAddress("127.0.0.1", 0), 0
         );
@@ -62,8 +63,8 @@ class WebsiteCheckerTest {
         PrintStream originalOut = System.out;
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        try {
-            System.setOut(new PrintStream(output));
+        try (PrintStream testOut = new PrintStream(output)) {
+            System.setOut(testOut);
 
             WebsiteChecker checker = new WebsiteChecker();
             String baseUrl = "http://127.0.0.1:" + server.getAddress().getPort();
@@ -84,7 +85,7 @@ class WebsiteCheckerTest {
 
 
     @Test
-    void shouldHandleConnectionFailure() throws Exception {
+    void shouldHandleConnectionFailure() throws IOException {
         HttpServer server = HttpServer.create(
                 new InetSocketAddress("127.0.0.1", 0), 0
         );
@@ -99,8 +100,8 @@ class WebsiteCheckerTest {
         PrintStream originalOut = System.out;
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        try {
-            System.setOut(new PrintStream(output));
+        try (PrintStream testOut = new PrintStream(output)) {
+            System.setOut(testOut);
 
             WebsiteChecker checker = new WebsiteChecker();
             checker.check(url);
@@ -112,6 +113,7 @@ class WebsiteCheckerTest {
 
         } finally {
             System.setOut(originalOut);
+            server.stop(0);
         }
     }
 }

@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Checks website availability by sending HTTP requests
@@ -33,11 +34,11 @@ public class WebsiteChecker {
             long start = System.nanoTime();
             HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
 
-            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            long durationInMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
 
             System.out.println("Website: " + url);
             System.out.println("HTTP Status: " + response.statusCode());
-            System.out.println("Response Time: " + elapsedMs + " ms");
+            System.out.println("Response Time: " + durationInMs + " ms");
 
         } catch (Exception e) {
             System.out.println("Website: " + url);
