@@ -25,9 +25,9 @@ public class HeartbeatApplication {
             CheckResult result = checker.check(args[0]);
 
             System.out.println("Website: " + result.url());
+            System.out.println("Status: " + result.status());
 
             if (result.error() != null) {
-                System.out.println("Status: DOWN");
                 System.out.println("Error: " + result.error());
             } else {
                 System.out.println("HTTP Status: " + result.httpStatus());

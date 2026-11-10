@@ -7,6 +7,7 @@ public record CheckResult(
         String url,
         Integer httpStatus,
         Long responseTimeMs,
+        WebsiteStatus status,
         String error
 ) {
 }

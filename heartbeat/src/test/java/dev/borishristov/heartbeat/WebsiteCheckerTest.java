@@ -33,6 +33,7 @@ class WebsiteCheckerTest {
             assertEquals(200, result.httpStatus());
             assertNotNull(result.responseTimeMs());
             assertTrue(result.responseTimeMs() >= 0);
+            assertEquals(WebsiteStatus.UP, result.status());
             assertNull(result.error());
 
         } finally {
@@ -67,6 +68,8 @@ class WebsiteCheckerTest {
 
             assertEquals(404, notFound.httpStatus());
             assertEquals(500, serverError.httpStatus());
+            assertEquals(WebsiteStatus.DOWN, notFound.status());
+            assertEquals(WebsiteStatus.DOWN, serverError.status());
             assertNull(notFound.error());
             assertNull(serverError.error());
 
@@ -97,6 +100,31 @@ class WebsiteCheckerTest {
         assertEquals(url, result.url());
         assertNull(result.httpStatus());
         assertNull(result.responseTimeMs());
+        assertEquals(WebsiteStatus.DOWN, result.status());
         assertNotNull(result.error());
+    }
+
+    @Test
+    void shouldClassifyWebsiteStatuses() {
+        assertEquals(WebsiteStatus.UP,
+                WebsiteChecker.classify(200, 100));
+
+        assertEquals(WebsiteStatus.UP,
+                WebsiteChecker.classify(301, 500));
+
+        assertEquals(WebsiteStatus.DEGRADED,
+                WebsiteChecker.classify(200, 1500));
+
+        assertEquals(WebsiteStatus.DEGRADED,
+                WebsiteChecker.classify(100, 1000));
+
+        assertEquals(WebsiteStatus.DOWN,
+                WebsiteChecker.classify(404, 100));
+
+        assertEquals(WebsiteStatus.DOWN,
+                WebsiteChecker.classify(500, 1500));
+
+        assertEquals(WebsiteStatus.UP,
+                WebsiteChecker.classify(200, 999));
     }
 }
