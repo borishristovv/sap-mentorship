@@ -17,13 +17,12 @@ public class WebsiteChecker {
     private final HttpClient client = HttpClient.newHttpClient();
 
     /**
-     * Sends an HTTP GET request to the specified URL and prints
-     * the HTTP status code and response time.
-     * Reports connection errors if the request fails.
+     * Performs an HTTP GET request and returns the check result.
      *
      * @param url the URL of the website to check
+     * @return the HTTP check result or error information
      */
-    public void check(String url) {
+    public CheckResult check(String url) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -36,14 +35,10 @@ public class WebsiteChecker {
 
             long durationInMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
 
-            System.out.println("Website: " + url);
-            System.out.println("HTTP Status: " + response.statusCode());
-            System.out.println("Response Time: " + durationInMs + " ms");
+            return new CheckResult(url, response.statusCode(), durationInMs, null);
 
         } catch (Exception e) {
-            System.out.println("Website: " + url);
-            System.out.println("Status: DOWN");
-            System.out.println("Error: " + e.getMessage());
+            return new CheckResult(url, null, null, e.toString());
         }
     }
 }

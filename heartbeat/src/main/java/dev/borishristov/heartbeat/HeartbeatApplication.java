@@ -22,7 +22,17 @@ public class HeartbeatApplication {
             }
 
             WebsiteChecker checker = new WebsiteChecker();
-            checker.check(args[0]);
+            CheckResult result = checker.check(args[0]);
+
+            System.out.println("Website: " + result.url());
+
+            if (result.error() != null) {
+                System.out.println("Status: DOWN");
+                System.out.println("Error: " + result.error());
+            } else {
+                System.out.println("HTTP Status: " + result.httpStatus());
+                System.out.println("Response Time: " + result.responseTimeMs() + " ms");
+            }
         };
     }
 }

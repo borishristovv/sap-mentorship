@@ -3,9 +3,7 @@ package dev.borishristov.heartbeat;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class WebsiteCheckerTest {
 
     @Test
-    void shouldPrintHttp200ForWorkingWebsite() throws IOException {
+    void shouldReturnHttp200ForWorkingWebsite() throws IOException {
         HttpServer server = HttpServer.create(
                 new InetSocketAddress("127.0.0.1", 0), 0
         );
@@ -25,25 +23,25 @@ class WebsiteCheckerTest {
 
         server.start();
 
-        PrintStream originalOut = System.out;
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-        try (PrintStream testOut = new PrintStream(output)) {
-            System.setOut(testOut);
-
+        try {
             WebsiteChecker checker = new WebsiteChecker();
-            checker.check("http://127.0.0.1:" + server.getAddress().getPort());
+            String url = "http://127.0.0.1:" + server.getAddress().getPort();
 
-            assertTrue(output.toString().contains("HTTP Status: 200"));
+            CheckResult result = checker.check(url);
+
+            assertEquals(url, result.url());
+            assertEquals(200, result.httpStatus());
+            assertNotNull(result.responseTimeMs());
+            assertTrue(result.responseTimeMs() >= 0);
+            assertNull(result.error());
 
         } finally {
-            System.setOut(originalOut);
             server.stop(0);
         }
     }
 
     @Test
-    void shouldPrintHttpErrorCodes() throws IOException {
+    void shouldReturnHttpErrorCodes() throws IOException {
         HttpServer server = HttpServer.create(
                 new InetSocketAddress("127.0.0.1", 0), 0
         );
@@ -60,25 +58,19 @@ class WebsiteCheckerTest {
 
         server.start();
 
-        PrintStream originalOut = System.out;
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-        try (PrintStream testOut = new PrintStream(output)) {
-            System.setOut(testOut);
-
+        try {
             WebsiteChecker checker = new WebsiteChecker();
             String baseUrl = "http://127.0.0.1:" + server.getAddress().getPort();
 
-            checker.check(baseUrl + "/not-found");
-            checker.check(baseUrl + "/server-error");
+            CheckResult notFound = checker.check(baseUrl + "/not-found");
+            CheckResult serverError = checker.check(baseUrl + "/server-error");
 
-            String result = output.toString();
-
-            assertTrue(result.contains("HTTP Status: 404"));
-            assertTrue(result.contains("HTTP Status: 500"));
+            assertEquals(404, notFound.httpStatus());
+            assertEquals(500, serverError.httpStatus());
+            assertNull(notFound.error());
+            assertNull(serverError.error());
 
         } finally {
-            System.setOut(originalOut);
             server.stop(0);
         }
     }
@@ -90,30 +82,21 @@ class WebsiteCheckerTest {
                 new InetSocketAddress("127.0.0.1", 0), 0
         );
 
-        server.start();
 
-        String url = "http://127.0.0.1:" + server.getAddress().getPort();
-
-        // Stop the server before trying to connect.
-        server.stop(0);
-
-        PrintStream originalOut = System.out;
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-
-        try (PrintStream testOut = new PrintStream(output)) {
-            System.setOut(testOut);
-
-            WebsiteChecker checker = new WebsiteChecker();
-            checker.check(url);
-
-            String result = output.toString();
-
-            assertTrue(result.contains("Status: DOWN"));
-            assertTrue(result.contains("Error:"));
-
+        String url;
+        try {
+            server.start();
+            url = "http://127.0.0.1:" + server.getAddress().getPort();
         } finally {
-            System.setOut(originalOut);
             server.stop(0);
         }
+
+        WebsiteChecker checker = new WebsiteChecker();
+        CheckResult result = checker.check(url);
+
+        assertEquals(url, result.url());
+        assertNull(result.httpStatus());
+        assertNull(result.responseTimeMs());
+        assertNotNull(result.error());
     }
 }
