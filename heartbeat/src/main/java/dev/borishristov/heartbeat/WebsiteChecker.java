@@ -7,11 +7,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Component;
 
 /**
  * Checks website availability by sending HTTP requests
  * and measuring response times.
  */
+@Component
 public class WebsiteChecker {
 
     private static final long DEGRADED_THRESHOLD_MS = 1000;

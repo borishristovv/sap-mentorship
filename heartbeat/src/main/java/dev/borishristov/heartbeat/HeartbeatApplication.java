@@ -5,8 +5,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.beans.factory.annotation.Value;
 
 @SpringBootApplication
+@EnableScheduling
 public class HeartbeatApplication {
 
     public static void main(String[] args) {
@@ -14,14 +17,18 @@ public class HeartbeatApplication {
     }
 
     @Bean
-    CommandLineRunner runChecker() {
+    CommandLineRunner runChecker(WebsiteChecker checker,
+                                 @Value("${heartbeat.monitor.enabled:false}") boolean monitoringEnabled) {
         return args -> {
+            if (monitoringEnabled) {
+                return;
+            }
+
             if (args.length != 1) {
                 System.out.println("Usage: heartbeat <url>");
                 return;
             }
 
-            WebsiteChecker checker = new WebsiteChecker();
             CheckResult result = checker.check(args[0]);
 
             System.out.println("Website: " + result.url());
