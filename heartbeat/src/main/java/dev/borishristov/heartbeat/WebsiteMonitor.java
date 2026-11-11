@@ -8,6 +8,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+
+/**
+ * Periodically checks the configured websites when monitoring is enabled.
+ */
 @Component
 @ConditionalOnProperty(
         name = "heartbeat.monitor.enabled",
@@ -26,6 +30,10 @@ public class WebsiteMonitor {
         this.urls = urls;
     }
 
+    /**
+     * Checks each configured website and prints its result.
+     * The next execution is scheduled after the configured fixed delay.
+     */
     @Scheduled(fixedDelayString = "${heartbeat.monitor.interval-ms}", initialDelayString = "${heartbeat.monitor.initial-delay-ms:0}")
     public void checkWebsites() {
         for (String url : urls) {

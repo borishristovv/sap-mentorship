@@ -1,6 +1,7 @@
 
 package dev.borishristov.heartbeat;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -20,10 +21,11 @@ public class WebsiteChecker {
     private final HttpClient client = HttpClient.newHttpClient();
 
     /**
-     * Performs an HTTP GET request and returns the check result.
+     * Performs an HTTP GET request and returns a structured result.
+     * Network failures are represented as DOWN results.
      *
-     * @param url the URL of the website to check
-     * @return the HTTP check result or error information
+     * @param url the website URL to check
+     * @return the HTTP response details or error information
      */
     public CheckResult check(String url) {
         try {
@@ -43,11 +45,30 @@ public class WebsiteChecker {
 
             return new CheckResult(url, httpStatus, durationInMs, status, null);
 
-        } catch (Exception e) {
-            return new CheckResult(url, null, null, WebsiteStatus.DOWN, e.toString());
+        } catch (InterruptedException e) {
+            // Restore the interrupted flag so callers can detect cancellation.
+            Thread.currentThread().interrupt();
+            return new CheckResult(
+                    url, null, null, WebsiteStatus.DOWN, e.toString()
+            );
+
+        } catch (IOException | IllegalArgumentException e) {
+            return new CheckResult(
+                    url, null, null, WebsiteStatus.DOWN, e.toString()
+            );
         }
     }
 
+
+    /**
+     * Classifies website health using the HTTP status code and response time.
+     * Responses from 100 to 399 are considered healthy unless they exceed
+     * the degraded response-time threshold.
+     *
+     * @param httpStatus the HTTP response status code
+     * @param responseTimeMs the response time in milliseconds
+     * @return UP, DOWN, or DEGRADED
+     */
     public static WebsiteStatus classify(int httpStatus, long responseTimeMs) {
         if (httpStatus < 100 || httpStatus >= 400) {
             return WebsiteStatus.DOWN;
