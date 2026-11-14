@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.io.PrintStream;
+
 @SpringBootApplication
 @EnableScheduling
 public class HeartbeatApplication {
@@ -16,8 +18,14 @@ public class HeartbeatApplication {
         SpringApplication.run(HeartbeatApplication.class, args);
     }
 
+    @Bean(destroyMethod = "")
+    PrintStream outputStream() {
+        return System.out;
+    }
+
     @Bean
     CommandLineRunner runChecker(WebsiteChecker checker,
+                                 PrintStream out,
                                  @Value("${heartbeat.monitor.enabled:false}") boolean monitoringEnabled) {
         return args -> {
             if (monitoringEnabled) {
@@ -25,20 +33,20 @@ public class HeartbeatApplication {
             }
 
             if (args.length != 1) {
-                System.out.println("Usage: heartbeat <url>");
+                out.println("Usage: heartbeat <url>");
                 return;
             }
 
             CheckResult result = checker.check(args[0]);
 
-            System.out.println("Website: " + result.url());
-            System.out.println("Status: " + result.status());
+            out.println("Website: " + result.url());
+            out.println("Status: " + result.status());
 
             if (result.error() != null) {
-                System.out.println("Error: " + result.error());
+                out.println("Error: " + result.error());
             } else {
-                System.out.println("HTTP Status: " + result.httpStatus());
-                System.out.println("Response Time: " + result.responseTimeMs() + " ms");
+                out.println("HTTP Status: " + result.httpStatus());
+                out.println("Response Time: " + result.responseTimeMs() + " ms");
             }
         };
     }

@@ -4,9 +4,12 @@ package dev.borishristov.heartbeat;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class WebsiteMonitorTest {
@@ -15,33 +18,28 @@ class WebsiteMonitorTest {
     void shouldCheckAllConfiguredWebsites() {
         WebsiteChecker checker = mock(WebsiteChecker.class);
 
-        List<String> urls = List.of("https://google.com", "https://github.com");
+        String url = "https://google.com";
 
-        when(checker.check("https://google.com"))
-                .thenReturn(new CheckResult(
-                        "https://google.com",
-                        200,
-                        150L,
-                        WebsiteStatus.UP,
-                        null
-                ));
+        when(checker.check(url)).thenReturn(
+                new CheckResult(url, 200, 150L, WebsiteStatus.UP, null)
+        );
 
-        when(checker.check("https://github.com"))
-                .thenReturn(new CheckResult(
-                        "https://github.com",
-                        200,
-                        120L,
-                        WebsiteStatus.UP,
-                        null
-                ));
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        WebsiteMonitor monitor = new WebsiteMonitor(checker, urls);
+        try (PrintStream out = new PrintStream(buffer)) {
+            WebsiteMonitor monitor = new WebsiteMonitor(
+                    checker,
+                    List.of(url),
+                    out
+            );
 
-        monitor.checkWebsites();
+            monitor.checkWebsites();
 
-        verify(checker).check("https://google.com");
-        verify(checker).check("https://github.com");
-        verifyNoMoreInteractions(checker);
+            verify(checker).check(url);
+
+            assertTrue(buffer.toString().contains("Status: UP"));
+            assertTrue(buffer.toString().contains("HTTP Status: 200"));
+        }
     }
 
     @Test

@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.PrintStream;
 import java.util.List;
 
 
@@ -21,35 +22,41 @@ public class WebsiteMonitor {
 
     private final WebsiteChecker checker;
     private final List<String> urls;
+    private final PrintStream out;
 
     public WebsiteMonitor(
             WebsiteChecker checker,
-            @Value("${heartbeat.monitor.urls}") List<String> urls
+            @Value("${heartbeat.monitor.urls}") List<String> urls,
+            PrintStream out
     ) {
         this.checker = checker;
         this.urls = urls;
+        this.out = out;
     }
 
     /**
      * Checks each configured website and prints its result.
      * The next execution is scheduled after the configured fixed delay.
      */
-    @Scheduled(fixedDelayString = "${heartbeat.monitor.interval-ms}", initialDelayString = "${heartbeat.monitor.initial-delay-ms:0}")
+    @Scheduled(
+            fixedDelayString = "${heartbeat.monitor.interval-ms}",
+            initialDelayString = "${heartbeat.monitor.initial-delay-ms:0}"
+    )
     public void checkWebsites() {
         for (String url : urls) {
             CheckResult result = checker.check(url);
 
-            System.out.println("Website: " + result.url());
-            System.out.println("Status: " + result.status());
+            out.println("Website: " + result.url());
+            out.println("Status: " + result.status());
 
             if (result.error() != null) {
-                System.out.println("Error: " + result.error());
+                out.println("Error: " + result.error());
             } else {
-                System.out.println("HTTP Status: " + result.httpStatus());
-                System.out.println("Response Time: " + result.responseTimeMs() + " ms");
+                out.println("HTTP Status: " + result.httpStatus());
+                out.println("Response Time: " + result.responseTimeMs() + " ms");
             }
 
-            System.out.println();
+            out.println();
         }
     }
 }

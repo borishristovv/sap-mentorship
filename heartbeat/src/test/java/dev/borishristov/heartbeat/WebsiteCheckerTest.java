@@ -46,9 +46,9 @@ class WebsiteCheckerTest {
 
     @ParameterizedTest
     @CsvSource({
-            "400, DOWN",
-            "403, DOWN",
-            "404, DOWN",
+            "400, UP",
+            "403, UP",
+            "404, UP",
             "500, DOWN",
             "503, DOWN"
     })
@@ -121,7 +121,7 @@ class WebsiteCheckerTest {
             "200, 1000, DEGRADED",
             "200, 1500, DEGRADED",
             "100, 1000, DEGRADED",
-            "404, 100, DOWN",
+            "404, 100, UP",
             "500, 1500, DOWN",
             "0, 100, DOWN"
     })

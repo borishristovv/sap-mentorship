@@ -62,15 +62,15 @@ public class WebsiteChecker {
 
     /**
      * Classifies website health using the HTTP status code and response time.
-     * Responses from 100 to 399 are considered healthy unless they exceed
-     * the degraded response-time threshold.
+     * Responses from 100 to 499 are considered UP or DEGRADED depending
+     * on response time. Server errors (500+) are classified as DOWN.
      *
      * @param httpStatus the HTTP response status code
      * @param responseTimeMs the response time in milliseconds
      * @return UP, DOWN, or DEGRADED
      */
     public static WebsiteStatus classify(int httpStatus, long responseTimeMs) {
-        if (httpStatus < 100 || httpStatus >= 400) {
+        if (httpStatus < 100 || httpStatus >= 500) {
             return WebsiteStatus.DOWN;
         }
 
