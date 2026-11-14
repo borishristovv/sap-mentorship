@@ -8,6 +8,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Component;
  * and measuring response times.
  */
 @Component
-public class WebsiteChecker {
+public class WebsiteChecker implements AutoCloseable {
 
     private static final long DEGRADED_THRESHOLD_MS = 1000;
     private final HttpClient client = HttpClient.newHttpClient();
@@ -79,5 +81,11 @@ public class WebsiteChecker {
         }
 
         return WebsiteStatus.UP;
+    }
+
+    @PreDestroy
+    @Override
+    public void close() {
+        client.close();
     }
 }

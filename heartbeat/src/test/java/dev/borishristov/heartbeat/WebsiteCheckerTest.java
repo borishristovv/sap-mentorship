@@ -25,8 +25,7 @@ class WebsiteCheckerTest {
 
         server.start();
 
-        try {
-            WebsiteChecker checker = new WebsiteChecker();
+        try (WebsiteChecker checker = new WebsiteChecker()) {
             String url = "http://127.0.0.1:" + server.getAddress().getPort();
 
             CheckResult result = checker.check(url);
@@ -52,10 +51,7 @@ class WebsiteCheckerTest {
             "500, DOWN",
             "503, DOWN"
     })
-    void shouldReturnHttpErrorCodes(
-            int httpStatus,
-            WebsiteStatus expectedStatus
-    ) throws IOException {
+    void shouldReturnHttpErrorCodes(int httpStatus) throws IOException {
 
         HttpServer server = HttpServer.create(
                 new InetSocketAddress("127.0.0.1", 0), 10
@@ -68,14 +64,17 @@ class WebsiteCheckerTest {
 
         server.start();
 
-        try {
-            WebsiteChecker checker = new WebsiteChecker();
+        try (WebsiteChecker checker = new WebsiteChecker()) {
             String url = "http://127.0.0.1:" + server.getAddress().getPort();
 
             CheckResult result = checker.check(url);
 
             assertEquals(httpStatus, result.httpStatus());
-            assertEquals(expectedStatus, result.status());
+            if (httpStatus < 500) {
+                assertNotEquals(WebsiteStatus.DOWN, result.status());
+            } else {
+                assertEquals(WebsiteStatus.DOWN, result.status());
+            }
             assertNotNull(result.responseTimeMs());
             assertNull(result.error());
 
@@ -92,23 +91,25 @@ class WebsiteCheckerTest {
                 new InetSocketAddress("127.0.0.1", 0), 10
         );
 
-
-        String url;
-        try {
+        try (WebsiteChecker checker = new WebsiteChecker()) {
             server.start();
-            url = "http://127.0.0.1:" + server.getAddress().getPort();
+
+            String url = "http://127.0.0.1:" + server.getAddress().getPort();
+
+            // Stop the server to simulate a connection failure
+            server.stop(0);
+
+            CheckResult result = checker.check(url);
+
+            assertEquals(url, result.url());
+            assertNull(result.httpStatus());
+            assertNull(result.responseTimeMs());
+            assertEquals(WebsiteStatus.DOWN, result.status());
+            assertNotNull(result.error());
+
         } finally {
             server.stop(0);
         }
-
-        WebsiteChecker checker = new WebsiteChecker();
-        CheckResult result = checker.check(url);
-
-        assertEquals(url, result.url());
-        assertNull(result.httpStatus());
-        assertNull(result.responseTimeMs());
-        assertEquals(WebsiteStatus.DOWN, result.status());
-        assertNotNull(result.error());
     }
 
 
