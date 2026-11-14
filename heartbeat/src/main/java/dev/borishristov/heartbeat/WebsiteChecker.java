@@ -9,7 +9,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WebsiteChecker implements AutoCloseable {
 
-    private static final long DEGRADED_THRESHOLD_MS = 1000;
+    private static final Duration DEGRADED_THRESHOLD = Duration.ofSeconds(1);
     private final HttpClient client = HttpClient.newHttpClient();
 
     /**
@@ -76,14 +75,13 @@ public class WebsiteChecker implements AutoCloseable {
             return WebsiteStatus.DOWN;
         }
 
-        if (responseTimeMs >= DEGRADED_THRESHOLD_MS) {
+        if (responseTimeMs >= DEGRADED_THRESHOLD.toMillis()) {
             return WebsiteStatus.DEGRADED;
         }
 
         return WebsiteStatus.UP;
     }
 
-    @PreDestroy
     @Override
     public void close() {
         client.close();

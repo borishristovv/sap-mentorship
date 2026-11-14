@@ -10,8 +10,8 @@ import static org.mockito.Mockito.*;
 @SpringBootTest(properties = {
         "heartbeat.monitor.enabled=true",
         "heartbeat.monitor.urls=https://example.com",
-        "heartbeat.monitor.interval-ms=100",
-        "heartbeat.monitor.initial-delay-ms=500"
+        "heartbeat.monitor.interval=100ms",
+        "heartbeat.monitor.initial-delay=500ms"
 })
 class WebsiteMonitorIntegrationTest {
 

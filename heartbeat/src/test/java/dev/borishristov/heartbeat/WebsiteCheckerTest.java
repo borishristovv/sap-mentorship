@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -44,13 +45,7 @@ class WebsiteCheckerTest {
 
 
     @ParameterizedTest
-    @CsvSource({
-            "400, UP",
-            "403, UP",
-            "404, UP",
-            "500, DOWN",
-            "503, DOWN"
-    })
+    @ValueSource(ints = {400, 403, 404, 500, 503})
     void shouldReturnHttpErrorCodes(int httpStatus) throws IOException {
 
         HttpServer server = HttpServer.create(
@@ -122,6 +117,7 @@ class WebsiteCheckerTest {
             "200, 1000, DEGRADED",
             "200, 1500, DEGRADED",
             "100, 1000, DEGRADED",
+            "404, 1500, DEGRADED",
             "404, 100, UP",
             "500, 1500, DOWN",
             "0, 100, DOWN"

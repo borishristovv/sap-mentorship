@@ -49,7 +49,7 @@ class WebsiteMonitorTest {
                 .getAnnotation(Scheduled.class);
 
         assertEquals(
-                "${heartbeat.monitor.interval-ms}",
+                "${heartbeat.monitor.interval}",
                 annotation.fixedDelayString()
         );
     }

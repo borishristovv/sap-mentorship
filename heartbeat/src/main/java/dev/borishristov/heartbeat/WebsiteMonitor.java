@@ -39,8 +39,8 @@ public class WebsiteMonitor {
      * The next execution is scheduled after the configured fixed delay.
      */
     @Scheduled(
-            fixedDelayString = "${heartbeat.monitor.interval-ms}",
-            initialDelayString = "${heartbeat.monitor.initial-delay-ms:0}"
+            fixedDelayString = "${heartbeat.monitor.interval}",
+            initialDelayString = "${heartbeat.monitor.initial-delay:0s}"
     )
     public void checkWebsites() {
         for (String url : urls) {
