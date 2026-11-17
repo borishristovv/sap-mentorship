@@ -33,7 +33,6 @@ class WebsiteMonitorIntegrationTest {
                 )
         );
 
-        verify(checker, timeout(4000).atLeast(3))
-                .check(url);
+        verify(checker, timeout(4000).atLeast(3)).check(url);
     }
 }

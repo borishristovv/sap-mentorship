@@ -5,13 +5,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.PrintStream;
 
 @SpringBootApplication
-@EnableScheduling
 public class HeartbeatApplication {
 
     public static void main(String[] args) {

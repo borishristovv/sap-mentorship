@@ -2,13 +2,12 @@
 package dev.borishristov.heartbeat;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.Duration;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -30,7 +29,9 @@ class WebsiteMonitorTest {
             WebsiteMonitor monitor = new WebsiteMonitor(
                     checker,
                     List.of(url),
-                    out
+                    out,
+                    Duration.ofSeconds(60),
+                    Duration.ZERO
             );
 
             monitor.checkWebsites();
@@ -42,15 +43,35 @@ class WebsiteMonitorTest {
         }
     }
 
-    @Test
-    void shouldUseConfiguredSchedulingInterval() throws NoSuchMethodException {
-        Scheduled annotation = WebsiteMonitor.class
-                .getDeclaredMethod("checkWebsites")
-                .getAnnotation(Scheduled.class);
 
-        assertEquals(
-                "${heartbeat.monitor.interval}",
-                annotation.fixedDelayString()
+    @Test
+    void shouldCheckWebsitesRepeatedlyUsingThread() {
+        WebsiteChecker checker = mock(WebsiteChecker.class);
+        String url = "https://example.com";
+
+        when(checker.check(url)).thenReturn(
+                new CheckResult(url, 200, 100L, WebsiteStatus.UP, null)
         );
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        try (PrintStream out = new PrintStream(buffer)) {
+            WebsiteMonitor monitor = new WebsiteMonitor(
+                    checker,
+                    List.of(url),
+                    out,
+                    Duration.ofMillis(100),
+                    Duration.ZERO
+            );
+
+            try {
+                monitor.startMonitoring();
+
+                verify(checker, timeout(2000).atLeast(3)).check(url);
+            } finally {
+                monitor.stopMonitoring();
+            }
+        }
     }
+
 }
