@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.concurrent.*;
 
 import java.io.PrintStream;
 import java.time.Duration;
@@ -30,6 +32,7 @@ public class WebsiteMonitor {
 
     private volatile boolean running = false;
     private Thread worker;
+    private final ExecutorService executor = Executors.newFixedThreadPool(3);
 
     public WebsiteMonitor(
             WebsiteChecker checker,
@@ -83,31 +86,55 @@ public class WebsiteMonitor {
     }
 
 
+
     public void checkWebsites() {
+        List<Future<CheckResult>> futures = new ArrayList<>();
+
         for (Monitor monitor : repository.findAll()) {
             if (Thread.currentThread().isInterrupted()) {
-                return;
+                break;
             }
 
             if (!monitor.isEnabled()) {
                 continue;
             }
 
-            CheckResult result = checker.check(monitor.getUrl());
+            futures.add(executor.submit(
+                    () -> checker.check(monitor.getUrl())
+            ));
+        }
 
-            out.println("Website: " + result.url());
-            out.println("Status: " + result.status());
+        for (Future<CheckResult> future : futures) {
+            try {
+                CheckResult result = future.get();
 
-            if (result.error() != null) {
-                out.println("Error: " + result.error());
-            } else {
-                out.println("HTTP Status: " + result.httpStatus());
-                out.println("Response Time: " + result.responseTimeMs() + " ms");
+                out.println("Website: " + result.url());
+                out.println("Status: " + result.status());
+
+                if (result.error() != null) {
+                    out.println("Error: " + result.error());
+                } else {
+                    out.println("HTTP Status: " + result.httpStatus());
+                    out.println("Response Time: "
+                            + result.responseTimeMs() + " ms");
+                }
+
+                out.println();
+
+            } catch (InterruptedException e) {
+                for (Future<CheckResult> pending : futures) {
+                    pending.cancel(true);
+                }
+
+                Thread.currentThread().interrupt();
+                return;
+
+            } catch (ExecutionException e) {
+                out.println("Website check failed: " + e.getCause());
             }
-
-            out.println();
         }
     }
+
 
 
     @PreDestroy
@@ -116,12 +143,21 @@ public class WebsiteMonitor {
 
         if (worker != null) {
             worker.interrupt();
+        }
 
-            try {
+        executor.shutdownNow();
+
+        try {
+            if (worker != null) {
                 worker.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
             }
+
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                out.println("Warning: Executor did not terminate within 5 seconds.");
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }

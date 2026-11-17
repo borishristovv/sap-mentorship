@@ -40,7 +40,16 @@ class WebsiteMonitorTest {
                     Duration.ZERO
             );
 
-            monitor.checkWebsites();
+            try {
+                monitor.checkWebsites();
+
+                verify(checker).check(url);
+
+                assertTrue(buffer.toString().contains("Status: UP"));
+                assertTrue(buffer.toString().contains("HTTP Status: 200"));
+            } finally {
+                monitor.stopMonitoring();
+            }
 
             verify(checker).check(url);
 
