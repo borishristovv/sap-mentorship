@@ -5,11 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.List;
+
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(properties = {
         "heartbeat.monitor.enabled=true",
-        "heartbeat.monitor.urls=https://example.com",
         "heartbeat.monitor.interval=100ms",
         "heartbeat.monitor.initial-delay=500ms"
 })
@@ -18,10 +19,17 @@ class WebsiteMonitorIntegrationTest {
     @MockitoBean
     private WebsiteChecker checker;
 
+    @MockitoBean
+    private MonitorRepository repository;
+
     @Test
     void shouldAutomaticallyCheckWebsiteMultipleTimes() {
 
         String url = "https://example.com";
+
+        when(repository.findAll()).thenReturn(
+                List.of(new Monitor(url, true))
+        );
 
         when(checker.check(url)).thenReturn(
                 new CheckResult(

@@ -23,7 +23,7 @@ import java.util.List;
 public class WebsiteMonitor {
 
     private final WebsiteChecker checker;
-    private final List<String> urls;
+    private final MonitorRepository repository;
     private final PrintStream out;
     private final Duration interval;
     private final Duration initialDelay;
@@ -33,13 +33,13 @@ public class WebsiteMonitor {
 
     public WebsiteMonitor(
             WebsiteChecker checker,
-            @Value("${heartbeat.monitor.urls}") List<String> urls,
+            MonitorRepository repository,
             PrintStream out,
             @Value("${heartbeat.monitor.interval}") Duration interval,
             @Value("${heartbeat.monitor.initial-delay:0s}") Duration initialDelay
     ) {
         this.checker = checker;
-        this.urls = urls;
+        this.repository = repository;
         this.out = out;
         this.interval = interval;
         this.initialDelay = initialDelay;
@@ -82,13 +82,18 @@ public class WebsiteMonitor {
         }
     }
 
+
     public void checkWebsites() {
-        for (String url : urls) {
+        for (Monitor monitor : repository.findAll()) {
             if (Thread.currentThread().isInterrupted()) {
                 return;
             }
 
-            CheckResult result = checker.check(url);
+            if (!monitor.isEnabled()) {
+                continue;
+            }
+
+            CheckResult result = checker.check(monitor.getUrl());
 
             out.println("Website: " + result.url());
             out.println("Status: " + result.status());
@@ -103,6 +108,7 @@ public class WebsiteMonitor {
             out.println();
         }
     }
+
 
     @PreDestroy
     public synchronized void stopMonitoring() {

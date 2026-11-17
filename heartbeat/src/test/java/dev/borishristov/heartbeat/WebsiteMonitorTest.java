@@ -25,12 +25,18 @@ class WebsiteMonitorTest {
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
+        MonitorRepository repository = mock(MonitorRepository.class);
+
+        when(repository.findAll()).thenReturn(
+                List.of(new Monitor(url, true))
+        );
+
         try (PrintStream out = new PrintStream(buffer)) {
             WebsiteMonitor monitor = new WebsiteMonitor(
                     checker,
-                    List.of(url),
+                    repository,
                     out,
-                    Duration.ofSeconds(60),
+                    Duration.ofMillis(100),
                     Duration.ZERO
             );
 
@@ -55,10 +61,16 @@ class WebsiteMonitorTest {
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
+        MonitorRepository repository = mock(MonitorRepository.class);
+
+        when(repository.findAll()).thenReturn(
+                List.of(new Monitor("https://example.com", true))
+        );
+
         try (PrintStream out = new PrintStream(buffer)) {
             WebsiteMonitor monitor = new WebsiteMonitor(
                     checker,
-                    List.of(url),
+                    repository,
                     out,
                     Duration.ofMillis(100),
                     Duration.ZERO
