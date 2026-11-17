@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.PrintStream;
+import java.util.List;
+import java.util.Optional;
 
 @SpringBootApplication
 public class HeartbeatApplication {
@@ -33,7 +35,7 @@ public class HeartbeatApplication {
             }
 
             if (args.length == 1 && args[0].equals("list")) {
-                var monitors = repository.findAll();
+                List<Monitor> monitors = repository.findByEnabledTrue();
 
                 if (monitors.isEmpty()) {
                     out.println("No monitored websites found.");
@@ -53,14 +55,18 @@ public class HeartbeatApplication {
             if (args.length == 2 && args[0].equals("remove")) {
                 String id = args[1];
 
-                if (!repository.existsById(id)) {
+                Optional<Monitor> existing = repository.findById(id);
+
+                if (existing.isEmpty()) {
                     out.println("Monitor not found: " + id);
                     return;
                 }
 
-                repository.deleteById(id);
+                Monitor monitor = existing.get();
+                monitor.setEnabled(false);
+                repository.save(monitor);
 
-                out.println("Monitor removed successfully!");
+                out.println("Monitor deactivated successfully!");
                 out.println("ID: " + id);
                 return;
             }
@@ -83,6 +89,25 @@ public class HeartbeatApplication {
                     return;
                 }
 
+                Optional<Monitor> existing = repository.findByUrl(url);
+
+                if (existing.isPresent()) {
+                    Monitor monitor = existing.get();
+
+                    if (monitor.isEnabled()) {
+                        out.println("Website is already being monitored.");
+                        out.println("ID: " + monitor.getId());
+                        return;
+                    }
+
+                    monitor.setEnabled(true);
+                    repository.save(monitor);
+
+                    out.println("Website reactivated successfully!");
+                    out.println("ID: " + monitor.getId());
+                    return;
+                }
+
                 Monitor monitor = new Monitor(url, true);
                 Monitor saved = repository.save(monitor);
 
@@ -94,8 +119,11 @@ public class HeartbeatApplication {
 
             // Existing single-website checking functionality
             if (args.length != 1) {
-                out.println("Usage: heartbeat <url>");
-                out.println("       heartbeat add <url>");
+                out.println("Usage:");
+                out.println("  heartbeat <url>");
+                out.println("  heartbeat add <url>");
+                out.println("  heartbeat list");
+                out.println("  heartbeat remove <id>");
                 return;
             }
 
