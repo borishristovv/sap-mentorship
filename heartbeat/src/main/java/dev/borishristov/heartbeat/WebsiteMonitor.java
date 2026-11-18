@@ -30,7 +30,7 @@ public class WebsiteMonitor {
     private final Duration interval;
     private final Duration initialDelay;
 
-    private volatile boolean running = false;
+    private volatile boolean running = false; // Ensures changes to running are visible across threads
     private Thread worker;
     private final ExecutorService executor = Executors.newFixedThreadPool(3);
 
@@ -149,7 +149,7 @@ public class WebsiteMonitor {
 
         try {
             if (worker != null) {
-                worker.join();
+                worker.join(5000); // Waits for the monitoring thread to finish before continuing shutdown
             }
 
             if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
