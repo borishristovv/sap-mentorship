@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Checks website availability by sending HTTP requests
@@ -19,11 +20,30 @@ import org.springframework.stereotype.Component;
 public class WebsiteChecker implements AutoCloseable {
 
     private static final Duration DEGRADED_THRESHOLD = Duration.ofSeconds(1);
+
     private final HttpClient client = HttpClient.newHttpClient();
+    private final Duration timeout;
+
 
     /**
-     * Performs an HTTP GET request and returns a structured result.
-     * Network failures are represented as DOWN results.
+     * Creates a website checker with a configurable HTTP request timeout.
+     *
+     * @param timeout maximum time to wait for an HTTP response
+     * @throws IllegalArgumentException if the timeout is not positive
+     */
+    public WebsiteChecker(
+            @Value("${heartbeat.check.timeout:10s}") Duration timeout
+    ) {
+        if (timeout.isZero() || timeout.isNegative()) {
+            throw new IllegalArgumentException("HTTP timeout must be positive");
+        }
+
+        this.timeout = timeout;
+    }
+
+    /**
+     * Performs an HTTP GET request and measures its response time.
+     * Network failures and timeouts are classified as DOWN.
      *
      * @param url the website URL to check
      * @return the HTTP response details or error information
@@ -32,7 +52,7 @@ public class WebsiteChecker implements AutoCloseable {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(10))
+                    .timeout(timeout)
                     .GET()
                     .build();
 

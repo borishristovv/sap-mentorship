@@ -15,7 +15,9 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * Periodically monitors websites using a dedicated Java thread.
+ * Periodically monitors websites using a dedicated scheduling thread.
+ * Retrieves monitors from MongoDB and checks websites concurrently
+ * using a fixed thread pool.
  */
 @Component
 @ConditionalOnProperty(
@@ -48,6 +50,10 @@ public class WebsiteMonitor {
         this.initialDelay = initialDelay;
     }
 
+    /**
+     * Starts the monitoring thread after Spring Boot is ready.
+     * Prevents multiple monitoring loops from starting on the same instance.
+     */
     @EventListener(ApplicationReadyEvent.class)
     public synchronized void startMonitoring() {
         if (running) {
@@ -86,7 +92,11 @@ public class WebsiteMonitor {
     }
 
 
-
+    /**
+     * Retrieves monitored websites from MongoDB and submits HTTP checks
+     * to the executor for parallel execution.
+     * Waits for the results and prints them to the console.
+     */
     public void checkWebsites() {
         List<Future<CheckResult>> futures = new ArrayList<>();
 
@@ -132,7 +142,11 @@ public class WebsiteMonitor {
     }
 
 
-
+    /**
+     * Stops periodic monitoring during application shutdown.
+     * Interrupts the monitoring thread, cancels executor tasks,
+     * and waits for termination.
+     */
     @PreDestroy
     public synchronized void stopMonitoring() {
         running = false;
@@ -145,7 +159,7 @@ public class WebsiteMonitor {
 
         try {
             if (worker != null) {
-                worker.join(5000); // Waits for the monitoring thread to finish before continuing shutdown
+                worker.join(5000); // Wait up to 5 seconds for the monitoring thread to terminate
             }
 
             if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {

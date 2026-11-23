@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,7 +27,7 @@ class WebsiteCheckerTest {
 
         server.start();
 
-        try (WebsiteChecker checker = new WebsiteChecker()) {
+        try (WebsiteChecker checker = new WebsiteChecker(Duration.ofSeconds(10))) {
             String url = "http://127.0.0.1:" + server.getAddress().getPort();
 
             CheckResult result = checker.check(url);
@@ -59,7 +60,7 @@ class WebsiteCheckerTest {
 
         server.start();
 
-        try (WebsiteChecker checker = new WebsiteChecker()) {
+        try (WebsiteChecker checker = new WebsiteChecker(Duration.ofSeconds(10))) {
             String url = "http://127.0.0.1:" + server.getAddress().getPort();
 
             CheckResult result = checker.check(url);
@@ -86,7 +87,7 @@ class WebsiteCheckerTest {
                 new InetSocketAddress("127.0.0.1", 0), 10
         );
 
-        try (WebsiteChecker checker = new WebsiteChecker()) {
+        try (WebsiteChecker checker = new WebsiteChecker(Duration.ofSeconds(10))) {
             server.start();
 
             String url = "http://127.0.0.1:" + server.getAddress().getPort();

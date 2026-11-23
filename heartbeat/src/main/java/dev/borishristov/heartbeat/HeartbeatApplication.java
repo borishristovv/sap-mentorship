@@ -10,6 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import java.io.PrintStream;
 import java.util.List;
 
+/**
+ * Entry point for Heartbeat.
+ * Provides CLI commands for managing monitors and checking websites.
+ * Supports continuous monitoring when enabled through configuration.
+ */
 @SpringBootApplication
 public class HeartbeatApplication {
 
