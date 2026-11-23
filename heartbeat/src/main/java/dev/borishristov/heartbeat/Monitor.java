@@ -11,11 +11,9 @@ public class Monitor {
     private String id;
 
     private String url;
-    private boolean enabled;
 
-    public Monitor(String url, boolean enabled) {
+    public Monitor(String url) {
         this.url = url;
-        this.enabled = enabled;
     }
 
     public String getId() {
@@ -26,11 +24,4 @@ public class Monitor {
         return url;
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
 }

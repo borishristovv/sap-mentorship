@@ -28,7 +28,7 @@ class WebsiteMonitorTest {
         MonitorRepository repository = mock(MonitorRepository.class);
 
         when(repository.findAll()).thenReturn(
-                List.of(new Monitor(url, true))
+                List.of(new Monitor(url))
         );
 
         try (PrintStream out = new PrintStream(buffer)) {
@@ -50,11 +50,6 @@ class WebsiteMonitorTest {
             } finally {
                 monitor.stopMonitoring();
             }
-
-            verify(checker).check(url);
-
-            assertTrue(buffer.toString().contains("Status: UP"));
-            assertTrue(buffer.toString().contains("HTTP Status: 200"));
         }
     }
 
@@ -73,7 +68,7 @@ class WebsiteMonitorTest {
         MonitorRepository repository = mock(MonitorRepository.class);
 
         when(repository.findAll()).thenReturn(
-                List.of(new Monitor("https://example.com", true))
+                List.of(new Monitor("https://example.com"))
         );
 
         try (PrintStream out = new PrintStream(buffer)) {

@@ -95,10 +95,6 @@ public class WebsiteMonitor {
                 break;
             }
 
-            if (!monitor.isEnabled()) {
-                continue;
-            }
-
             futures.add(executor.submit(
                     () -> checker.check(monitor.getUrl())
             ));

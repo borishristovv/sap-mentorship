@@ -28,7 +28,7 @@ class WebsiteMonitorIntegrationTest {
         String url = "https://example.com";
 
         when(repository.findAll()).thenReturn(
-                List.of(new Monitor(url, true))
+                List.of(new Monitor("https://example.com"))
         );
 
         when(checker.check(url)).thenReturn(

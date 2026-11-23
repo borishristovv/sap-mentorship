@@ -15,7 +15,7 @@ class MonitorRepositoryTest {
 
     @Test
     void shouldSaveAndRetrieveMonitor() {
-        Monitor monitor = new Monitor("https://example.com", true);
+        Monitor monitor = new Monitor("https://example.com");
 
         Monitor saved = repository.save(monitor);
 
@@ -26,7 +26,6 @@ class MonitorRepositoryTest {
                     .orElseThrow();
 
             assertEquals("https://example.com", retrieved.getUrl());
-            assertTrue(retrieved.isEnabled());
         } finally {
             repository.deleteById(saved.getId());
         }

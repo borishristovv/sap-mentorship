@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Optional;
 
 @SpringBootApplication
 public class HeartbeatApplication {
@@ -35,7 +34,7 @@ public class HeartbeatApplication {
             }
 
             if (args.length == 1 && args[0].equals("list")) {
-                List<Monitor> monitors = repository.findByEnabledTrue();
+                List<Monitor> monitors = repository.findAll();
 
                 if (monitors.isEmpty()) {
                     out.println("No monitored websites found.");
@@ -45,7 +44,6 @@ public class HeartbeatApplication {
                 for (Monitor monitor : monitors) {
                     out.println("ID: " + monitor.getId());
                     out.println("URL: " + monitor.getUrl());
-                    out.println("Enabled: " + monitor.isEnabled());
                     out.println();
                 }
 
@@ -55,18 +53,14 @@ public class HeartbeatApplication {
             if (args.length == 2 && args[0].equals("remove")) {
                 String id = args[1];
 
-                Optional<Monitor> existing = repository.findById(id);
-
-                if (existing.isEmpty()) {
+                if (!repository.existsById(id)) {
                     out.println("Monitor not found: " + id);
                     return;
                 }
 
-                Monitor monitor = existing.get();
-                monitor.setEnabled(false);
-                repository.save(monitor);
+                repository.deleteById(id);
 
-                out.println("Monitor deactivated successfully!");
+                out.println("Monitor removed successfully!");
                 out.println("ID: " + id);
                 return;
             }
@@ -89,26 +83,7 @@ public class HeartbeatApplication {
                     return;
                 }
 
-                Optional<Monitor> existing = repository.findByUrl(url);
-
-                if (existing.isPresent()) {
-                    Monitor monitor = existing.get();
-
-                    if (monitor.isEnabled()) {
-                        out.println("Website is already being monitored.");
-                        out.println("ID: " + monitor.getId());
-                        return;
-                    }
-
-                    monitor.setEnabled(true);
-                    repository.save(monitor);
-
-                    out.println("Website reactivated successfully!");
-                    out.println("ID: " + monitor.getId());
-                    return;
-                }
-
-                Monitor monitor = new Monitor(url, true);
+                Monitor monitor = new Monitor(url);
                 Monitor saved = repository.save(monitor);
 
                 out.println("Website added successfully!");
