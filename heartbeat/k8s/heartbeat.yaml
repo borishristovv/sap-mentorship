@@ -1,0 +1,24 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heartbeat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: heartbeat
+  template:
+    metadata:
+      labels:
+        app: heartbeat
+    spec:
+      containers:
+        - name: heartbeat
+          image: heartbeat:local
+          imagePullPolicy: Never
+          args:
+            - "--heartbeat.monitor.enabled=true"
+          env:
+            - name: SPRING_MONGODB_URI
+              value: "mongodb://mongodb:27017/heartbeat"
