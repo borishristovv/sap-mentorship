@@ -1,11 +1,9 @@
+
 .git
 .idea
 .mvn
-src
-mvnw
-mvnw.cmd
-pom.xml
-target/*.original
-target/classes
-target/test-classes
-target/surefire-reports
+target
+*.iml
+*.cmd
+README.md
+HELP.md

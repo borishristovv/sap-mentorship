@@ -4,11 +4,27 @@ package dev.borishristov.heartbeat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.testcontainers.mongodb.MongoDBContainer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Import(MonitorRepositoryTest.MongoTestConfig.class)
 class MonitorRepositoryTest {
+
+    @TestConfiguration(proxyBeanMethods = false)
+    static class MongoTestConfig {
+
+        @Bean
+        @ServiceConnection
+        MongoDBContainer mongoDBContainer() {
+            return new MongoDBContainer("mongo:8.0");
+        }
+    }
 
     @Autowired
     private MonitorRepository repository;
